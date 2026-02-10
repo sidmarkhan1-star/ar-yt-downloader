@@ -11,6 +11,9 @@ app.get("/download", async (req, res) => {
   const url = req.query.url;
   if (!url) return res.send("URL required");
 
+  // 🔴 Railway ko turant signal do
+  res.status(200);
+  res.setHeader("Content-Type", "video/mp4");
   res.setHeader(
     "Content-Disposition",
     'attachment; filename="video.mp4"'
@@ -19,12 +22,11 @@ app.get("/download", async (req, res) => {
   try {
     const stream = youtubedl(url, {
       format: "mp4",
-      output: "-",
+      output: "-"
     });
     stream.pipe(res);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Download error");
+  } catch (e) {
+    res.status(500).send("Error");
   }
 });
 
