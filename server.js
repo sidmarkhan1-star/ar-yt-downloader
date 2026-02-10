@@ -13,26 +13,14 @@ const { exec } = require("child_process");
 
 app.get("/download", (req, res) => {
   const videoUrl = req.query.url;
-  const format = req.query.format || "mp4";
-
   if (!videoUrl) {
     return res.status(400).send("URL required");
   }
 
-  if (!["mp4", "mp3"].includes(format)) {
-    return res.status(400).send("Invalid format");
-  }
-
-  const fileName = `video-${Date.now()}.${format}`;
+  const fileName = `video-${Date.now()}.mp4`;
   const filePath = path.join("/tmp", fileName);
 
-  let command;
-
-  if (format === "mp3") {
-    command = `yt-dlp -x --audio-format mp3 -o "${filePath}" "${videoUrl}"`;
-  } else {
-    command = `yt-dlp -f mp4 -o "${filePath}" "${videoUrl}"`;
-  }
+  const command = `yt-dlp -f mp4 -o "${filePath}" "${videoUrl}"`;
 
   exec(command, (error) => {
     if (error) {
