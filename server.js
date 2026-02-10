@@ -1,10 +1,10 @@
 const express = require("express");
-const ytdlp = require("yt-dlp-exec");
+const youtubedl = require("youtube-dl-exec");
 
 const app = express();
 
 app.get("/", (req, res) => {
-  res.send("Backend working on Railway");
+  res.send("Server is online");
 });
 
 app.get("/download", async (req, res) => {
@@ -17,12 +17,13 @@ app.get("/download", async (req, res) => {
   );
 
   try {
-    const stream = ytdlp(url, {
+    const stream = youtubedl(url, {
       format: "mp4",
       output: "-",
     });
     stream.pipe(res);
   } catch (err) {
+    console.error(err);
     res.status(500).send("Download error");
   }
 });
