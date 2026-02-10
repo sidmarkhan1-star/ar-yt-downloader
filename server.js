@@ -7,53 +7,42 @@ app.get("/", (req, res) => {
   res.send("Server is online");
 });
 
-app.get("/download", (req, res) => {
-  const url = req.query.url;
+import fs from "fs";
+import path from "path";
+import { exec } from "child_process";
 
-  // 1️⃣ Validation
-  if (!url) {
+app.get("/download", (req, res) => {
+  const videoUrl = req.query.url;
+  const format = req.query.format || "mp4"; // default mp4
+
+  if (!videoUrl) {
     return res.status(400).send("URL required");
   }
 
-  if (!url.includes("tiktok.com")) {
-    return res.status(400).send("Only TikTok URLs supported on Railway");
+  if (!["mp4", "mp3"].includes(format)) {
+    return res.status(400).send("Invalid format");
   }
 
-  // 2️⃣ Headers pehle set karo (important)
-  res.setHeader(
-    "Content-Disposition",
-    'attachment; filename="tiktok.mp4"'
-  );
-  res.setHeader("Content-Type", "video/mp4");
+  const fileName = `video-${Date.now()}.${format}`;
+  const filePath = path.join("/tmp", fileName);
 
-  // 3️⃣ yt-dlp command (simple, fast)
-  const { exec } = require("child_process");
+  let command = "";
 
-  const cmd = `yt-dlp -f mp4 -o - "${url}"`;
+  if (format === "mp3") {
+    command = `yt-dlp -x --audio-format mp3 -o "${filePath}" "${videoUrl}"`;
+  } else {
+    command = `yt-dlp -f mp4 -o "${filePath}" "${videoUrl}"`;
+  }
 
-  const p = exec(cmd, {
-    maxBuffer: 1024 * 1024 * 30, // Railway friendly
-    timeout: 60 * 1000           // 60 sec hard stop
-  });
-
-  // 4️⃣ Stream output
-  p.stdout.pipe(res);
-
-  // 5️⃣ Error handling (VERY IMPORTANT)
-  p.stderr.on("data", (data) => {
-    console.error("yt-dlp error:", data.toString());
-  });
-
-  p.on("error", () => {
-    if (!res.headersSent) {
-      res.status(500).send("Download failed");
+  exec(command, (error) => {
+    if (error) {
+      console.error(error);
+      return res.status(500).send("Download failed");
     }
-  });
 
-  p.on("close", () => {
-    if (!res.writableEnded) {
-      res.end();
-    }
+    res.download(filePath, fileName, () => {
+      fs.unlink(filePath, () => {});
+    });
   });
 });
 app.get("/ping", (req, res) => {
