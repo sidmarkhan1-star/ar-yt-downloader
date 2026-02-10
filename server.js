@@ -10,6 +10,9 @@ app.get("/", (req, res) => {
 app.get("/download", async (req, res) => {
   const url = req.query.url;
   if (!url) return res.send("URL required");
+  app.get("/ping", (req, res) => {
+  res.send("pong");
+});
 
   // 🔴 Railway ko turant signal do
   res.status(200);
