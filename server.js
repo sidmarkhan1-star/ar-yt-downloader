@@ -7,13 +7,13 @@ app.get("/", (req, res) => {
   res.send("Server is online");
 });
 
-import fs from "fs";
-import path from "path";
-import { exec } from "child_process";
+const fs = require("fs");
+const path = require("path");
+const { exec } = require("child_process");
 
 app.get("/download", (req, res) => {
   const videoUrl = req.query.url;
-  const format = req.query.format || "mp4"; // default mp4
+  const format = req.query.format || "mp4";
 
   if (!videoUrl) {
     return res.status(400).send("URL required");
@@ -26,7 +26,7 @@ app.get("/download", (req, res) => {
   const fileName = `video-${Date.now()}.${format}`;
   const filePath = path.join("/tmp", fileName);
 
-  let command = "";
+  let command;
 
   if (format === "mp3") {
     command = `yt-dlp -x --audio-format mp3 -o "${filePath}" "${videoUrl}"`;
